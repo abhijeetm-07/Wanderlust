@@ -25,6 +25,11 @@ const userRouter = require("./routes/user.js");
 // const Mongo_Url = "mongodb://127.0.0.1:27017/Wanderlust";
 const dbUrl=process.env.ATLASDB_URL;
 
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
+
+
 main()
   .then(() => {
     console.log("db connected successfullly");
@@ -45,19 +50,17 @@ app.engine("ejs", ejsMate);
 app.use(express.static(path.join(__dirname, "/public")));
 
 
-const store=Mongostore.create({
-  mongoUrl:dbUrl,
-  crypto:{
-    secret: process.env.SECRET, 
+const store = Mongostore.create({
+  mongoUrl: process.env.ATLASDB_URL, // Ensure this is correct
+  crypto: {
+    secret: process.env.SECRET, // Use a secure, random secret
   },
-  touchAfter:24*3600,
-
+  touchAfter: 24 * 3600, // Update session once per day
 });
 
-store.on("error",()=>{
-  console.log("error in mongo session store",err);
-}
-)
+store.on("error", (err) => {
+  console.log("Error in Mongo session store:", err);
+});
 
 const sessionOptions = {
   store,
@@ -65,18 +68,14 @@ const sessionOptions = {
   resave: false,
   saveUninitialized: true,
   cookie: {
-    expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
-    maxAge:7 * 24 * 60 * 60 * 1000,
-    httpOnly:true, 
+    expires: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    httpOnly: true, // Security: Prevents client-side JS from accessing cookies
   },
 };
 
-// app.get("/", (req, res) => {
-//   res.send("hi i am root");
-// });
-
-
 app.use(session(sessionOptions));
+
 app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
