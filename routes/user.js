@@ -3,8 +3,12 @@ const router = express.Router();
 const wrapasync = require("../utils/wrapasync.js");
 const passport = require("passport");
 const { saveRedirectUrl } = require("../middleware.js");
-
 const userController = require("../controllers/users.js");
+
+// ✅ Home route to redirect to listings
+router.get("/", (req, res) => {
+  res.redirect("/listings");
+});
 
 router
   .route("/signup")
@@ -13,7 +17,7 @@ router
 
 router
   .route("/login")
-  .get( userController.renderLoginForm)
+  .get(userController.renderLoginForm)
   .post(
     saveRedirectUrl,
     passport.authenticate("local", {
